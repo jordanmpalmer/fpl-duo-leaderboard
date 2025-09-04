@@ -1,0 +1,29 @@
+{
+  "name": "fpl-duo-leaderboard-backend",
+  "version": "1.0.0",
+  "description": "Backend API for FPL duo leaderboard",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "keywords": [
+    "fpl",
+    "fantasy",
+    "premier-league",
+    "leaderboard",
+    "api",
+    "express"
+  ],
+  "author": "Jordan Palmer",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.11.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "path-to-regexp": "^6.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
