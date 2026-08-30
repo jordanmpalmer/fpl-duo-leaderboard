@@ -7,5 +7,10 @@ This service allows tracks pairs of managers as a duo and computes a combined po
 - RESTful Express API
 - Deployable to AWS Elastic Beanstalk
 
+# Contributors
+- JP
+- AV
+
 # Getting Started
 Installation instructions coming soon...
+
