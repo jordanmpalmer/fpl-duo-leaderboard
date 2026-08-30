@@ -12,11 +12,18 @@ function Leaderboard() {
   const fetchLeaderboard = async () => {
     try {
       setLoading(true);
-      const baseUrl = "";
+      setError(null);
+
+      const baseUrl = process.env.REACT_APP_API_URL;
+      if (!baseUrl) {
+        throw new Error("REACT_APP_API_URL is not configured");
+      }
+
       const response = await fetch(`${baseUrl}/api/leaderboard`);
       if (!response.ok) {
         throw new Error("Failed to fetch leaderboard");
       }
+
       const data = await response.json();
       setLeaderboardData(data);
     } catch (err) {
