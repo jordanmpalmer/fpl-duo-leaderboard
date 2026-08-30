@@ -1,0 +1,78 @@
+name: Terraform
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "infra/**"
+      - ".github/workflows/terraform.yml"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Configure AWS credentials via OIDC (read-only role)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_INFRA_PLAN_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - run: terraform init
+
+      - name: Plan
+        run: terraform plan -out=tfplan -input=false
+
+      # Saved so the apply job runs the EXACT plan that was reviewed,
+      # not a fresh plan computed after approval, state could have
+      # drifted in between otherwise.
+      - name: Upload plan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: infra/tfplan
+          retention-days: 1
+
+  apply:
+    needs: plan
+    runs-on: ubuntu-latest
+    # This is the gate. Environment named "infra-apply" in
+    # repo Settings > Environments. The job pauses here until someone
+    # approves and the IAM trust policy on AWS_INFRA_APPLY_ROLE_ARN
+    # only accepts tokens minted for THIS environment, so there's no
+    # way to get write credentials without going through the approval.
+    environment: infra-apply
+    defaults:
+      run:
+        working-directory: infra
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - name: Configure AWS credentials via OIDC (write role)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_INFRA_APPLY_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - run: terraform init
+
+      - name: Download plan artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+          path: infra
+
+      - name: Apply
+        run: terraform apply -input=false tfplan
